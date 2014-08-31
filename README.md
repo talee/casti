@@ -1,4 +1,9 @@
 Casti
 =====
 
-Casti broadcasts HTML content it receives on an external display and provides a simple API for doing so
+Casti broadcasts HTML content it receives to an external display.
+
+Currently listens to POSTs on <http://localhost:62001/display>
+
+Build and run with:
+	ant run
