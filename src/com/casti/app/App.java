@@ -37,10 +37,12 @@ public class App extends Application {
         WebView browser = new WebView();
         String initialUri = "http://localhost:"+server.getPort()+"/waiting";
         browser.getEngine().load(initialUri);
-        StackPane root = new StackPane();
-        root.getChildren().add(browser);
-        Scene scene = new Scene(root, 400, 400, Color.BLACK);
 
+        StackPane root = new StackPane();
+        root.getChildren().clear();
+        root.getChildren().add(browser);
+
+        Scene scene = new Scene(root, 400, 100, Color.BLACK);
         stage.setScene(scene);
         stage.setOnCloseRequest((WindowEvent evt) -> {
             LOG.info("Stopping server");
