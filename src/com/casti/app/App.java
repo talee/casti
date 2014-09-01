@@ -4,7 +4,8 @@ import com.casti.server.Server;
 import com.casti.ui.OutputFrame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -12,12 +13,11 @@ import java.util.logging.Logger;
  */
 public class App {
 
-    private static final Logger LOG = Logger.getLogger("App");
+    private static final Logger LOG = LogManager.getLogger(App.class.getCanonicalName());
     private static final int PORT = 62001;
 
     public static void main(String[] args) {
         Server server = new Server(PORT);
-        LOG.info("Port: "+server.getPort());
         server.start();
         String initialUri = "http://localhost:"+server.getPort()+"/waiting";
         OutputFrame frame = new OutputFrame(initialUri, new WindowAdapter() {

@@ -1,6 +1,5 @@
 package com.casti.server;
 
-import com.casti.app.App;
 import com.casti.resources.StringResourceManager;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -8,8 +7,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Lightweight server instance.
@@ -18,32 +18,31 @@ import java.util.logging.Logger;
 public class Server {
 
     private HttpServer server;
-    private static final Logger LOG = Logger.getLogger("Server");
+    private static final Logger LOG = LogManager.getLogger(Server.class.getCanonicalName());
 
     public Server(int port) {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
             server.getAddress().getPort();
-            server.createContext("/start", (HttpExchange he) -> {
+            server.createContext("/start", new HttpHandlerWrapper((HttpExchange he) -> {
                 LOG.info("Received: "+he.getRequestMethod());
                 if ("POST".equals(he.getRequestMethod())) {
                 } else {
                     he.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, 0);
                     he.getResponseBody().close();
                 }
-            });
-            server.createContext("/display", (HttpExchange he) -> {
-            });
-            server.createContext("/waiting", (HttpExchange he) -> {
-                LOG.info(he.getRequestURI().getPath());
+            }));
+            server.createContext("/display",  new HttpHandlerWrapper((HttpExchange he) -> {
+            }));
+            server.createContext("/waiting",  new HttpHandlerWrapper((HttpExchange he) -> {
                 String contents = StringResourceManager.getContents("web/waiting.html");
                 he.sendResponseHeaders(HttpURLConnection.HTTP_OK, contents.length());
                 OutputStream out = he.getResponseBody();
                 out.write(contents.getBytes());
-            });
+            }));
             server.setExecutor(null);
         } catch (IOException ex) {
-            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.FATAL, "Failed to start server with given port "+port, ex);
         }
     }
     public void start() {

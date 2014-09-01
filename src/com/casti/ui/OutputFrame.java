@@ -4,9 +4,10 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
-import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.xhtmlrenderer.simple.XHTMLPanel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Frame displayed on external display.
@@ -14,7 +15,7 @@ import org.xhtmlrenderer.simple.XHTMLPanel;
  */
 public class OutputFrame {
 
-    private static final Logger LOG = Logger.getLogger("OutputFrame");
+    private static final Logger LOG = LogManager.getLogger(OutputFrame.class.getCanonicalName());
     private final XHTMLPanel panel;
     private final Dimension INITAL_DIMENSION = new Dimension(400, 100);
 
