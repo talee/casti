@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * Frame displayed on external display.
+ * @deprecated Using JavaFx now. See {@link com.casti.app.App}
  * @author tlee5
  */
 public class OutputFrame {

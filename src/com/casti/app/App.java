@@ -1,9 +1,15 @@
 package com.casti.app;
 
 import com.casti.server.Server;
-import com.casti.ui.OutputFrame;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.web.WebView;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,22 +17,44 @@ import org.apache.logging.log4j.Logger;
  * Initializes components and starts the app.
  * @author tlee5
  */
-public class App {
+public class App extends Application {
 
     private static final Logger LOG = LogManager.getLogger(App.class.getCanonicalName());
     private static final int PORT = 62001;
+    private static Server server;
 
     public static void main(String[] args) {
-        Server server = new Server(PORT);
+        server = new Server(PORT);
         server.start();
-        String initialUri = "http://localhost:"+server.getPort()+"/waiting";
-        OutputFrame frame = new OutputFrame(initialUri, new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                LOG.info("server.stopping");
-                server.stop(5);
-            }
-        });
+        App.launch(args);
     }
 
+    @Override
+    public void start(Stage stage) throws Exception {
+        stage.initStyle(StageStyle.UNDECORATED);
+        stage.setTitle("Casti");
+
+        WebView browser = new WebView();
+        String initialUri = "http://localhost:"+server.getPort()+"/waiting";
+        browser.getEngine().load(initialUri);
+        StackPane root = new StackPane();
+        root.getChildren().add(browser);
+        Scene scene = new Scene(root, 400, 400, Color.BLACK);
+
+        stage.setScene(scene);
+        stage.setOnCloseRequest((WindowEvent evt) -> {
+            LOG.info("Stopping server");
+            long startTime = System.currentTimeMillis();
+            new Thread(() -> {
+                // Server.stop is a blocking op
+                server.stop(0);
+                LOG.info("Stopped server successfully in "+(System.currentTimeMillis()-startTime)/1000+"s");
+                Platform.runLater(() -> {
+                    Platform.exit();
+                });
+            }).start();
+            evt.consume();
+        });
+        stage.show();
+    }
 }
