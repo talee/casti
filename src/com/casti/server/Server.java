@@ -36,9 +36,11 @@ public class Server {
             }));
             server.createContext("/waiting",  new HttpHandlerWrapper((HttpExchange he) -> {
                 String contents = StringResourceManager.getContents("web/waiting.html");
+                he.getResponseHeaders().add("Content-type", "text/html");
                 he.sendResponseHeaders(HttpURLConnection.HTTP_OK, contents.length());
-                OutputStream out = he.getResponseBody();
-                out.write(contents.getBytes());
+                try (OutputStream out = he.getResponseBody()) {
+                    out.write(contents.getBytes());
+                }
             }));
             server.setExecutor(null);
         } catch (IOException ex) {
