@@ -4,6 +4,8 @@ import com.casti.server.Server;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebView;
@@ -39,7 +41,8 @@ public class App extends Application {
         browser.getEngine().load(initialUri);
 
         StackPane root = new StackPane();
-        root.getChildren().clear();
+        // FYI: There's a momentary initial load time of gray background when the app loads
+        root.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
         root.getChildren().add(browser);
 
         Scene scene = new Scene(root, 400, 100, Color.BLACK);
