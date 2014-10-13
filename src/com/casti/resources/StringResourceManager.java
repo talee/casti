@@ -13,7 +13,7 @@ public class StringResourceManager {
     private static final String BASE_URI = "/com/casti/resources/";
     private static final Logger LOG = LogManager.getLogger(StringResourceManager.class.getCanonicalName());
 
-    public static String getContents(String path) {
+    public static String getContent(String path) {
         InputStream is = StringResourceManager.class.getResourceAsStream(BASE_URI+path);
         if (is==null) {
             LOG.error("No resource found at "+BASE_URI+path);

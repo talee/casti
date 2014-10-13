@@ -1,6 +1,7 @@
 package com.casti.app;
 
 import com.casti.server.Server;
+import java.util.function.Consumer;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -8,6 +9,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -24,9 +26,14 @@ public class App extends Application {
     private static final Logger LOG = LogManager.getLogger(App.class.getCanonicalName());
     private static final int PORT = 62001;
     private static Server server;
+    private static WebEngine browserEngine;
 
     public static void main(String[] args) {
-        server = new Server(PORT);
+        server = new Server(PORT, (String content) -> {
+            Platform.runLater(() -> {
+                browserEngine.loadContent(content);
+            });
+        });
         server.start();
         App.launch(args);
     }
@@ -38,7 +45,8 @@ public class App extends Application {
 
         WebView browser = new WebView();
         String initialUri = "http://localhost:"+server.getPort()+"/waiting";
-        browser.getEngine().load(initialUri);
+        browserEngine = browser.getEngine();
+        browserEngine.load(initialUri);
 
         StackPane root = new StackPane();
         // FYI: There's a momentary initial load time of gray background when the app loads
