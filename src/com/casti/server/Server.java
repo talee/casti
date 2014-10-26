@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.util.function.Consumer;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,31 +19,46 @@ import org.apache.logging.log4j.Logger;
 public class Server {
 
     private HttpServer server;
+    private String corsDomain = "localhost";
     private static final Logger LOG = LogManager.getLogger(Server.class.getCanonicalName());
 
-    public Server(int port) {
+    /**
+     * @param port
+     * @param setContentInFrame Function must set given HTML string inside display frame
+     */
+    public Server(int port, final Consumer<String> setContentInFrame) {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
-            server.getAddress().getPort();
             server.createContext("/start", new HttpHandlerWrapper((HttpExchange he) -> {
-                LOG.info("Received: "+he.getRequestMethod());
                 if ("POST".equals(he.getRequestMethod())) {
+                    // TODO: Authentication later?
                 } else {
-                    he.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, 0);
-                    he.getResponseBody().close();
+                    he.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, -1);
                 }
+                he.close();
             }));
+
             server.createContext("/display",  new HttpHandlerWrapper((HttpExchange he) -> {
-            }));
-            server.createContext("/waiting",  new HttpHandlerWrapper((HttpExchange he) -> {
-                String contents = StringResourceManager.getContents("web/waiting.html");
-                he.getResponseHeaders().add("Content-type", "text/html");
-                he.sendResponseHeaders(HttpURLConnection.HTTP_OK, contents.length());
-                try (OutputStream out = he.getResponseBody()) {
-                    out.write(contents.getBytes());
+                if ("POST".equals(he.getRequestMethod())) {
+                    String content = HttpHandlerWrapper.getRequestBody(he);
+                    he.getResponseHeaders().add("Content-type", "text/html");
+                    he.sendResponseHeaders(HttpURLConnection.HTTP_OK, -1);
+                    setContentInFrame.accept(content);
+                } else {
+                    he.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, -1);
                 }
+                he.close();
+            })).getFilters().add(new CorsFilter(corsDomain));
+
+            server.createContext("/waiting",  new HttpHandlerWrapper((HttpExchange he) -> {
+                String content = StringResourceManager.getContent("web/waiting.html");
+                he.getResponseHeaders().add("Content-type", "text/html");
+                he.sendResponseHeaders(HttpURLConnection.HTTP_OK, content.length());
+                try (OutputStream out = he.getResponseBody()) {
+                    out.write(content.getBytes());
+                }
+                he.close();
             }));
-            server.setExecutor(null);
         } catch (IOException ex) {
             LOG.log(Level.FATAL, "Failed to start server with given port "+port, ex);
         }
@@ -55,5 +71,14 @@ public class Server {
     }
     public int getPort() {
         return server.getAddress().getPort();
+    }
+
+    /**
+     * Any URIs of requests ending with the given domain are accepted as CORS
+     * requests.
+     * @param corsDomain 
+     */
+    public void setCorsDomain(String corsDomain) {
+        this.corsDomain = corsDomain;
     }
 }
