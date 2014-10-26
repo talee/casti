@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 public class Server {
 
     private HttpServer server;
+    private String corsDomain = "localhost";
     private static final Logger LOG = LogManager.getLogger(Server.class.getCanonicalName());
 
     /**
@@ -28,14 +29,15 @@ public class Server {
     public Server(int port, final Consumer<String> setContentInFrame) {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
-            server.getAddress().getPort();
             server.createContext("/start", new HttpHandlerWrapper((HttpExchange he) -> {
                 if ("POST".equals(he.getRequestMethod())) {
+                    // TODO: Authentication later?
                 } else {
                     he.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, -1);
                 }
                 he.close();
             }));
+
             server.createContext("/display",  new HttpHandlerWrapper((HttpExchange he) -> {
                 if ("POST".equals(he.getRequestMethod())) {
                     String content = HttpHandlerWrapper.getRequestBody(he);
@@ -46,7 +48,8 @@ public class Server {
                     he.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, -1);
                 }
                 he.close();
-            }));
+            })).getFilters().add(new CorsFilter(corsDomain));
+
             server.createContext("/waiting",  new HttpHandlerWrapper((HttpExchange he) -> {
                 String content = StringResourceManager.getContent("web/waiting.html");
                 he.getResponseHeaders().add("Content-type", "text/html");
@@ -68,5 +71,14 @@ public class Server {
     }
     public int getPort() {
         return server.getAddress().getPort();
+    }
+
+    /**
+     * Any URIs of requests ending with the given domain are accepted as CORS
+     * requests.
+     * @param corsDomain 
+     */
+    public void setCorsDomain(String corsDomain) {
+        this.corsDomain = corsDomain;
     }
 }

@@ -1,7 +1,6 @@
 package com.casti.app;
 
 import com.casti.server.Server;
-import java.util.function.Consumer;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -34,6 +33,9 @@ public class App extends Application {
                 browserEngine.loadContent(content);
             });
         });
+        if (args.length > 0)  {
+            server.setCorsDomain(args[0]);
+        }
         server.start();
         App.launch(args);
     }
