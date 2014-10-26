@@ -28,14 +28,12 @@ public class App extends Application {
     private static WebEngine browserEngine;
 
     public static void main(String[] args) {
+        String corsDomain = args.length > 0 ? args[0] : "localhost";
         server = new Server(PORT, (String content) -> {
             Platform.runLater(() -> {
                 browserEngine.loadContent(content);
             });
-        });
-        if (args.length > 0)  {
-            server.setCorsDomain(args[0]);
-        }
+        }, corsDomain);
         server.start();
         App.launch(args);
     }

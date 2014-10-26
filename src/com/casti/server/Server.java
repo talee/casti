@@ -19,14 +19,13 @@ import org.apache.logging.log4j.Logger;
 public class Server {
 
     private HttpServer server;
-    private String corsDomain = "localhost";
     private static final Logger LOG = LogManager.getLogger(Server.class.getCanonicalName());
 
     /**
      * @param port
      * @param setContentInFrame Function must set given HTML string inside display frame
      */
-    public Server(int port, final Consumer<String> setContentInFrame) {
+    public Server(int port, final Consumer<String> setContentInFrame, String corsDomain) {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
             server.createContext("/start", new HttpHandlerWrapper((HttpExchange he) -> {
@@ -71,14 +70,5 @@ public class Server {
     }
     public int getPort() {
         return server.getAddress().getPort();
-    }
-
-    /**
-     * Any URIs of requests ending with the given domain are accepted as CORS
-     * requests.
-     * @param corsDomain 
-     */
-    public void setCorsDomain(String corsDomain) {
-        this.corsDomain = corsDomain;
     }
 }
